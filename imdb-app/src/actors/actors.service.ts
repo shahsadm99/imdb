@@ -19,4 +19,7 @@ export class ActorsService {
   async findAll(): Promise<Actor[]> {
     return this.actorModel.find().exec();
   }
+  async findOne(id: string): Promise<Actor> {
+    return this.actorModel.findById(id).exec();
+  }
 }
