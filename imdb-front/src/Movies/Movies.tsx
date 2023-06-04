@@ -54,31 +54,75 @@ function Movies() {
 
 
 
-    const [producers, setProducers] = useState([{}]);
+  interface Producer {
+    _id: string;
+    name: string;
+  }
+
+    const [producers, setProducers] = useState<Producer[]>([]);
+    const [producerMap, setProducerMap] = useState<Record<string, string>>({});
+  
     useEffect(() => {
       (async () => {
-        const res = await fetch("/producers");
-        const producers = await res.json();
-        setProducers(producers);
+        try {
+          const response = await axios.get('/producers');
+          const producersResponse: Producer[] = response.data;
+  
+          // Create a producer map (hash map) to store producer details
+          const map: Record<string, string> = {};
+  
+          // Insert producer details into the producer map
+          producersResponse.forEach((producer: Producer) => {
+            map[producer._id] = producer.name;
+          });
+  
+          setProducers(producersResponse);
+          console.log(producersResponse);
+          setProducerMap(map);
+        } catch (error) {
+          console.error('Error fetching producer details:', error);
+        }
       })();
     }, []);
 
 
-    const [actors, setActors] = useState([{}]);
-  useEffect(() => {
-    (async () => {
-      const res = await fetch("/actors");
-      const actors = await res.json();
-      setActors(actors);
-    })();
-  }, []);
+    interface Actor {
+      _id: string;
+      name: string;
+    }
+  
+      const [actors, setActors] = useState<Actor[]>([]);
+      const [actorMap, setActorMap] = useState<Record<string, string>>({});
     
-
+      useEffect(() => {
+        (async () => {
+          try {
+            const response = await axios.get('/actors');
+            const actorsResponse: Actor[] = response.data;
+    
+            // Create a Actor map (hash map) to store Actor details
+            const map: Record<string, string> = {};
+    
+            // Insert Actor details into the Actor map
+            actorsResponse.forEach((actor: Actor) => {
+              map[actor._id] = actor.name;
+            });
+    
+            setActors(actorsResponse);
+            console.log(actorsResponse);
+            setActorMap(map);
+          } catch (error) {
+            console.error('Error fetching actor details:', error);
+          }
+        })();
+      }, []);
+  
+  
 
 
       
-        const [producerId, setProducerId] = React.useState<string[]>([]);
-      
+        const [producerId, setProducerId] = useState("");
+      /*
         const handleProducer = (event: SelectChangeEvent<typeof producerId>) => {
           const {
             target: { value },
@@ -87,7 +131,7 @@ function Movies() {
             // On autofill we get a stringified value.
             typeof value === 'string' ? value.split(',') : value,
           );
-        };
+        };*/
 
         const [actorId, setActorId] = React.useState<string[]>([]);
       
@@ -100,6 +144,14 @@ function Movies() {
           setActorId(
              typeof value === 'string' ? value.split(',') : value,
           );
+          console.log(actorId);
+        };
+        const handleProducer = (e: any) => {
+          const value= e.target.value;
+          setProducerId(
+            typeof value === 'string' ? value.split(',') : value,
+          );
+          console.log(producerId);
         };
 
 
@@ -145,11 +197,15 @@ const MenuProps = {
 
   const [add, setAdd] = useState(false);
   const handlebutton = (e: any) => {
-    console.log(JSON.stringify({ name: textInput }));
-    if (e.target.value == "actorname") {
+    //console.log(JSON.stringify({ name: textInput }));
+    if (e.target.value == "movies") {
       axios
-        .post("/actors", {
-          name: textInput,
+        .post("/movies", {
+          name: movieName,
+          year: movieYear,
+          actors: actorId,
+          producer: producerId
+
         })
         .then((response) => {
           console.log(response.data);
@@ -163,11 +219,9 @@ const MenuProps = {
     setAdd(!add);
     console.log(e);
   };
-  const handleChange = (e: any) => {
-    console.log(e.target.value);
-    //setTextInput(values=> ({...values,e.target.value}));
-  };
-  const [textInput, setTextInput] = useState("");
+
+  const [movieName, setMovieName] = useState("");
+  const [movieYear, setMovieYear] = useState("");
 
   return (
     <div>
@@ -194,27 +248,36 @@ const MenuProps = {
               autoComplete="off"
             >
               <TextField
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
+                value={movieName}
+                onChange={(e) => setMovieName(e.target.value)}
                 id="outlined-basic"
                 label="Name"
                 variant="outlined"
               >
                 Name
               </TextField>
+              <TextField
+                value={movieYear}
+                onChange={(e) => setMovieYear(e.target.value)}
+                id="outlined-basic"
+                label="Year"
+                variant="outlined"
+              >
+                Year
+              </TextField>
 
               <Select
                 labelId="demo-customized-select-label"
                 id="demo-customized-select"
-                value={age}
-                onChange={handleChange}
+                value={producerId}
+                onChange={handleProducer}
                 input={<BootstrapInput />}
               >
                 <MenuItem value="">
                   <em>None</em>
                 </MenuItem>
                 {producers.map((producer: any) => (
-            <MenuItem key={producer.name} value={producer.name}>
+            <MenuItem value={producer._id}>
                 <ListItemText primary={producer.name} />
             </MenuItem>
           ))}
@@ -232,8 +295,8 @@ const MenuProps = {
           MenuProps={MenuProps}
         >
           {actors.map((actor: any) => (
-            <MenuItem value={actor.name}>
-              <Checkbox checked={actorId.indexOf(actor.name) > -1} />
+            <MenuItem value={actor._id}>
+              <Checkbox checked={actorId.indexOf(actor._id) > -1} />
               <ListItemText primary={actor.name} />
             </MenuItem>
           ))}
@@ -241,7 +304,7 @@ const MenuProps = {
 
               <Button
                 variant="contained"
-                value="actorname"
+                value="movies"
                 onClick={handlebutton}
               >
                 Submit
@@ -257,14 +320,13 @@ const MenuProps = {
           justifyContent="center"
           alignItems="center"
         >
-          {movies.map((movie: any) => (
+          {movies && movies.map((movie: any) => (
             <>
               <MovieCard
                 name={movie.name}
                 year={movie.year}
-                producer={movie.producer}
-                actors={movie.actors}
-              />
+                producer={producerMap[movie.producer]}
+                actors={movie.actors && movie.actors.map((actor: any) => actorMap && actorMap[actor])}              />
             </>
           ))}
         </Grid>

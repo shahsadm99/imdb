@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ActorsService } from './actors.service';
 import { CreateActorDto } from './dto/actor.dto';
 
@@ -14,5 +14,10 @@ export class ActorsController {
   @Post()
   create(@Body() createActorDto: CreateActorDto) {
     return this.actorsService.create(createActorDto);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.actorsService.findOne(id);
   }
 }
