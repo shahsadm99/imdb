@@ -16,6 +16,7 @@ import InputBase from "@mui/material/InputBase";
 import OutlinedInput from '@mui/material/OutlinedInput';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
+import { Container } from "@mui/material";
 
 const BootstrapInput = styled(InputBase)(({ theme }) => ({
   "label + &": {
@@ -314,11 +315,15 @@ const MenuProps = {
         </div>
       </div>
       <div>
+   
         <Grid
-          container
+          container 
+          rowGap={2}
+          columnGap={2}
+          
           direction="row"
           justifyContent="center"
-          alignItems="center"
+          //alignItems="center"
         >
           {movies && movies.map((movie: any) => (
             <>
@@ -330,6 +335,7 @@ const MenuProps = {
             </>
           ))}
         </Grid>
+       
       </div>
     </div>
   );
